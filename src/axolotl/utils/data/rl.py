@@ -10,6 +10,7 @@ import yaml
 from datasets import DatasetDict, concatenate_datasets, load_dataset, load_from_disk
 
 from axolotl.common.const import DEFAULT_DATASET_PREPARED_PATH
+from axolotl.prompt_strategies.bradley_terry import load as load_bradley_terry
 from axolotl.prompt_strategies.dpo import load as load_dpo
 from axolotl.prompt_strategies.kto import load as load_kto
 from axolotl.prompt_strategies.orpo import load as load_orpo
@@ -104,6 +105,9 @@ def load_prepare_dpo_datasets(cfg):
                     ds_transform_fn = load_orpo(_type, _cfg, dataset_idx=i)
                 elif _cfg.rl == "kto":
                     ds_transform_fn = load_kto(_type, _cfg, dataset_idx=i)
+                elif _type.startswith("bradley_terry."):
+                    subtype = _type.split(".", 1)[1]
+                    ds_transform_fn = load_bradley_terry(subtype, _cfg, dataset_idx=i)
                 else:
                     ds_transform_fn = load_dpo(_type, _cfg, dataset_idx=i)
 
