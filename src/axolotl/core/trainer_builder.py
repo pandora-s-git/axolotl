@@ -65,6 +65,7 @@ from axolotl.utils.collators import (
     BatchSamplerDataCollatorForSeq2Seq,
     DataCollatorForSeq2Seq,
     MambaDataCollator,
+    RewardDataCollatorWithPadding,
     V2BatchSamplerDataCollatorForSeq2Seq,
 )
 from axolotl.utils.models import ensure_dtype
@@ -1642,7 +1643,9 @@ class HFCausalTrainerBuilder(TrainerBuilderBase):
                 DataCollatorForSeq2Seq,
             ]
         ]
-        if use_batch_sampler_collator:
+        if self.cfg.reward_model:
+            collator = RewardDataCollatorWithPadding
+        elif use_batch_sampler_collator:
             if self.cfg.model_config_type in SUPPORTED_MULTIPACK_MODEL_TYPES:
                 collator = V2BatchSamplerDataCollatorForSeq2Seq
             elif (

@@ -2,12 +2,12 @@
 DataCollator for axolotl to pad labels and position_ids for packed sequences
 """
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Sequence, Union
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 import numpy as np
 import torch
 import transformers
-from transformers import PreTrainedTokenizerBase
+from transformers import AutoTokenizer, PreTrainedTokenizerBase
 from transformers.utils import PaddingStrategy
 
 IGNORE_INDEX = -100
@@ -240,3 +240,43 @@ class PretrainingBatchSamplerDataCollatorForSeq2Seq(DataCollatorForSeq2Seq):
                 chunked_data[feature] = np.concatenate(arrays)
         features = [chunked_data]
         return super().__call__(features, return_tensors=return_tensors)
+
+
+# copied from
+# https://github.com/RLHFlow/RLHF-Reward-Modeling/blob/main/bradley-terry-rm/gemma_2B_rm.py
+@dataclass
+class RewardDataCollatorWithPadding:
+    tokenizer: AutoTokenizer
+    padding: Union[bool, str, PaddingStrategy] = True
+    max_length: Optional[int] = None
+    pad_to_multiple_of: Optional[int] = None
+    return_tensors: str = "pt"
+
+    def __call__(self, features: List[Dict[str, Any]]) -> Dict[str, Any]:
+        merged_features = []
+        for feature in features:
+            merged_features.append(
+                {
+                    "input_ids": feature["input_ids_j"],
+                    "attention_mask": feature["attention_mask_j"],
+                }
+            )
+            merged_features.append(
+                {
+                    "input_ids": feature["input_ids_k"],
+                    "attention_mask": feature["attention_mask_k"],
+                }
+            )
+        batch = self.tokenizer.pad(
+            merged_features,
+            padding=self.padding,
+            max_length=self.max_length,
+            pad_to_multiple_of=self.pad_to_multiple_of,
+            return_tensors=self.return_tensors,
+        )
+        batch = {
+            "input_ids": batch["input_ids"],
+            "attention_mask": batch["attention_mask"],
+            "return_loss": True,
+        }
+        return batch
