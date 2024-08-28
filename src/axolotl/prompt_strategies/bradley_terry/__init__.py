@@ -10,6 +10,7 @@ LOG = logging.getLogger("axolotl.prompt_strategies")
 
 
 def load(strategy, tokenizer, cfg, ds_cfg):
+    # pylint: disable=duplicate-code
     try:
         load_fn = "load"
         if strategy.split(".")[-1].startswith("load_"):

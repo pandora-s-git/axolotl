@@ -16,7 +16,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from functools import wraps
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Tuple, Type, Union
+from typing import Any, Dict, List, Literal, Optional, Type, Union
 
 import torch
 import transformers
@@ -42,8 +42,9 @@ from trl import (
     KTOTrainer,
     ORPOConfig,
     ORPOTrainer,
+    RewardTrainer,
 )
-from trl.trainer.utils import pad_to_length, RewardDataCollatorWithPadding
+from trl.trainer.utils import RewardDataCollatorWithPadding, pad_to_length
 
 from axolotl.loraplus import create_loraplus_optimizer
 from axolotl.monkeypatch.multipack import SUPPORTED_MULTIPACK_MODEL_TYPES
@@ -873,33 +874,6 @@ class AxolotlTrainer(SchedulerMixin, Trainer):
         return super()._save_checkpoint(model, trial, metrics=metrics)
 
 
-class AxolotlRewardTrainer(AxolotlTrainer):
-    def compute_loss(
-        self,
-        model: Union[PreTrainedModel, nn.Module],
-        inputs: Dict[str, Union[torch.Tensor, Any]],
-        return_outputs=False,
-    ) -> Union[torch.Tensor, Tuple[torch.Tensor, Dict[str, torch.Tensor]]]:
-        rewards_chosen = model(
-            input_ids=inputs["input_ids_chosen"],
-            attention_mask=inputs["attention_mask_chosen"],
-            return_dict=True,
-        )["logits"]
-        rewards_rejected = model(
-            input_ids=inputs["input_ids_rejected"],
-            attention_mask=inputs["attention_mask_rejected"],
-            return_dict=True,
-        )["logits"]
-        loss = -nn.functional.logsigmoid(rewards_chosen - rewards_rejected).mean()
-
-        if return_outputs:
-            return loss, {
-                "rewards_chosen": rewards_chosen,
-                "rewards_rejected": rewards_rejected,
-            }
-        return loss
-
-
 class AxolotlMambaTrainer(AxolotlTrainer):
     """
     Mamba specific trainer to handle loss calculation
@@ -1058,6 +1032,14 @@ class AxolotlCPOTrainer(SchedulerMixin, CPOTrainer):
     """
 
     tag_names = ["axolotl", "cpo"]
+
+
+class AxolotlRewardTrainer(SchedulerMixin, RewardTrainer):
+    """
+    Extend the base RewardTrainer for axolotl helpers
+    """
+
+    tag_names = ["axolotl", "reward"]
 
 
 class TrainerBuilderBase(abc.ABC):

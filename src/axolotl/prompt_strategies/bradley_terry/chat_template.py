@@ -1,3 +1,7 @@
+"""
+Bradley-Terry model with chat template prompt strategy.
+"""
+
 from typing import Any, Dict, Optional
 
 from axolotl.prompt_strategies.chat_template import (
@@ -8,6 +12,10 @@ from axolotl.utils.chat_templates import chat_templates
 
 
 class BTChatTemplateStrategy(ChatTemplateStrategy):
+    """
+    Bradley-Terry reward model pairwise chat template prompt strategy.
+    """
+
     def tokenize_prompt(self, prompt):
         """
 

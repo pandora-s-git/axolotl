@@ -1,3 +1,8 @@
+"""
+chatml transforms for datasets with system, input, chosen, rejected to match llama3 chat template
+"""
+
+
 def icr(
     cfg,
     **kwargs,
