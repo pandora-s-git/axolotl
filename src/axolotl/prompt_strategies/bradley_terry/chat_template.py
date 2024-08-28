@@ -68,7 +68,7 @@ def load(tokenizer, cfg, ds_cfg: Optional[Dict[str, Any]] = None):
         "train_on_eos": ds_cfg.get("train_on_eos", "turn"),
     }
 
-    strategy = ChatTemplateStrategy(
+    strategy = BTChatTemplateStrategy(
         ChatTemplatePrompter(**prompter_params), tokenizer=tokenizer, **strategy_params
     )
 
