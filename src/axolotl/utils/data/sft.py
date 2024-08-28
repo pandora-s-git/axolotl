@@ -579,7 +579,7 @@ def get_dataset_wrapper(
             dataset,
             **ds_kwargs,
         )
-    elif ds_strategy := config_dataset.type.startswtih("bradley_terry") and bradley_terry_load(config_dataset.type.split(".", 1)[1], tokenizer, cfg, config_dataset):
+    elif ds_strategy := config_dataset.type.startswith("bradley_terry") and bradley_terry_load(config_dataset.type.split(".", 1)[1], tokenizer, cfg, config_dataset):
         dataset_prompter = UnsupportedPrompter()
         dataset_wrapper = TokenizedPromptDataset(
             ds_strategy,
