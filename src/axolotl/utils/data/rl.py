@@ -105,9 +105,6 @@ def load_prepare_dpo_datasets(cfg):
                     ds_transform_fn = load_orpo(_type, _cfg, dataset_idx=i)
                 elif _cfg.rl == "kto":
                     ds_transform_fn = load_kto(_type, _cfg, dataset_idx=i)
-                elif _type.startswith("bradley_terry."):
-                    subtype = _type.split(".", 1)[1]
-                    ds_transform_fn = load_bradley_terry(subtype, _cfg, dataset_idx=i)
                 else:
                     ds_transform_fn = load_dpo(_type, _cfg, dataset_idx=i)
 
