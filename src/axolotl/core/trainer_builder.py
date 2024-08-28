@@ -42,6 +42,7 @@ from trl import (
     KTOTrainer,
     ORPOConfig,
     ORPOTrainer,
+    RewardConfig,
     RewardTrainer,
 )
 from trl.trainer.utils import RewardDataCollatorWithPadding, pad_to_length
@@ -296,6 +297,13 @@ class AxolotlCPOConfig(AxolotlTrainingMixins, CPOConfig):
     )
 
 
+@dataclass
+class AxolotlRewardConfig(AxolotlTrainingMixins, RewardConfig):
+    """
+    Reward config for Reward training
+    """
+
+
 class SchedulerMixin(Trainer):
     """
     Mixin class for scheduler setup in CausalTrainer.
@@ -393,12 +401,10 @@ class AxolotlTrainer(SchedulerMixin, Trainer):
     def __init__(
         self,
         *_args,
-        num_epochs=1,
         bench_data_collator=None,
         eval_data_collator=None,
         **kwargs,
     ):
-        self.num_epochs = num_epochs
         self.bench_data_collator = bench_data_collator
         self.eval_data_collator = eval_data_collator
         super().__init__(*_args, **kwargs)
@@ -1578,10 +1584,13 @@ class HFCausalTrainerBuilder(TrainerBuilderBase):
                 "accelerator_config"
             ] = self.cfg.accelerator_config
 
-        training_args = (
-            AxolotlTrainingArguments(  # pylint: disable=unexpected-keyword-arg
-                **training_arguments_kwargs,
-            )
+        training_args_cls = (
+            AxolotlTrainingArguments
+            if not self.cfg.reward_model
+            else AxolotlRewardConfig
+        )
+        training_args = training_args_cls(  # pylint: disable=unexpected-keyword-arg
+            **training_arguments_kwargs,
         )
         training_args = self.hook_post_create_training_args(training_args)
 
@@ -1619,7 +1628,6 @@ class HFCausalTrainerBuilder(TrainerBuilderBase):
             tokenizer=self.tokenizer,
             data_collator=self.build_collator(training_args, **data_collator_kwargs),
             callbacks=self.get_callbacks(),
-            num_epochs=self.cfg.num_epochs,
             **trainer_kwargs,
         )
         trainer = self.hook_post_create_trainer(trainer)
