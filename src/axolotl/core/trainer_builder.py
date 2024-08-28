@@ -43,7 +43,7 @@ from trl import (
     ORPOConfig,
     ORPOTrainer,
 )
-from trl.trainer.utils import pad_to_length
+from trl.trainer.utils import pad_to_length, RewardDataCollatorWithPadding
 
 from axolotl.loraplus import create_loraplus_optimizer
 from axolotl.monkeypatch.multipack import SUPPORTED_MULTIPACK_MODEL_TYPES
@@ -65,7 +65,6 @@ from axolotl.utils.collators import (
     BatchSamplerDataCollatorForSeq2Seq,
     DataCollatorForSeq2Seq,
     MambaDataCollator,
-    RewardDataCollatorWithPadding,
     V2BatchSamplerDataCollatorForSeq2Seq,
 )
 from axolotl.utils.models import ensure_dtype
