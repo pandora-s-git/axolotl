@@ -1637,6 +1637,9 @@ class HFCausalTrainerBuilder(TrainerBuilderBase):
         if training_args.pretraining:
             return None
 
+        if self.cfg.reward_model:
+            return None
+
         if self.cfg.model_config_type == "mamba":
             return MambaDataCollator(tokenizer=self.tokenizer)
 
