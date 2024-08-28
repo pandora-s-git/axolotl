@@ -19,24 +19,18 @@ class BTChatTemplateStrategy(ChatTemplateStrategy):
         # pylint: disable=duplicate-code
         prompt[self.messages] = []
         if prompt["system"]:
-            prompt[self.messages].append(
-                {"role": "system", "content": prompt["system"]}
-            )
-        prompt[self.messages].append({"role": "user", "content": prompt["input"]})
-        prompt[self.messages].append({"role": "assistant", "content": prompt["chosen"]})
+            prompt[self.messages].append({"from": "system", "value": prompt["system"]})
+        prompt[self.messages].append({"from": "user", "value": prompt["input"]})
+        prompt[self.messages].append({"from": "assistant", "value": prompt["chosen"]})
         chosen_tokenized = super().tokenize_prompt(prompt)
 
         self.messages = "rejected_messages"
         # pylint: disable=duplicate-code
         prompt[self.messages] = []
         if prompt["system"]:
-            prompt[self.messages].append(
-                {"role": "system", "content": prompt["system"]}
-            )
-        prompt[self.messages].append({"role": "user", "content": prompt["input"]})
-        prompt[self.messages].append(
-            {"role": "assistant", "content": prompt["rejected"]}
-        )
+            prompt[self.messages].append({"from": "system", "value": prompt["system"]})
+        prompt[self.messages].append({"from": "user", "value": prompt["input"]})
+        prompt[self.messages].append({"from": "assistant", "value": prompt["rejected"]})
         rejected_tokenized = super().tokenize_prompt(prompt)
 
         return {
