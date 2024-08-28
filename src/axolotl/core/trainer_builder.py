@@ -1601,6 +1601,16 @@ class HFCausalTrainerBuilder(TrainerBuilderBase):
         trainer_kwargs, trainer_cls = self.hook_pre_create_trainer(
             trainer_kwargs, trainer_cls
         )
+        if eval_data_collator := self.build_collator(
+            training_args, is_eval=True, **data_collator_kwargs
+        ):
+            trainer_kwargs["eval_data_collator"] = eval_data_collator
+        if not self.cfg.reward_model:
+            trainer_kwargs["bench_data_collator"] = transformers.DataCollatorForSeq2Seq(
+                self.tokenizer,
+                return_tensors="pt",
+                **data_collator_kwargs,
+            )
         trainer = trainer_cls(
             model=self.model,
             train_dataset=self.train_dataset,
@@ -1608,14 +1618,6 @@ class HFCausalTrainerBuilder(TrainerBuilderBase):
             args=training_args,
             tokenizer=self.tokenizer,
             data_collator=self.build_collator(training_args, **data_collator_kwargs),
-            eval_data_collator=self.build_collator(
-                training_args, is_eval=True, **data_collator_kwargs
-            ),
-            bench_data_collator=transformers.DataCollatorForSeq2Seq(
-                self.tokenizer,
-                return_tensors="pt",
-                **data_collator_kwargs,
-            ),
             callbacks=self.get_callbacks(),
             num_epochs=self.cfg.num_epochs,
             **trainer_kwargs,
