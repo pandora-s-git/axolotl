@@ -16,7 +16,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from functools import wraps
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Type, Union
+from typing import Any, Dict, List, Literal, Optional, Tuple, Type, Union
 
 import torch
 import transformers
@@ -874,6 +874,33 @@ class AxolotlTrainer(SchedulerMixin, Trainer):
         return super()._save_checkpoint(model, trial, metrics=metrics)
 
 
+class AxolotlRewardTrainer(AxolotlTrainer):
+    def compute_loss(
+        self,
+        model: Union[PreTrainedModel, nn.Module],
+        inputs: Dict[str, Union[torch.Tensor, Any]],
+        return_outputs=False,
+    ) -> Union[torch.Tensor, Tuple[torch.Tensor, Dict[str, torch.Tensor]]]:
+        rewards_chosen = model(
+            input_ids=inputs["input_ids_chosen"],
+            attention_mask=inputs["attention_mask_chosen"],
+            return_dict=True,
+        )["logits"]
+        rewards_rejected = model(
+            input_ids=inputs["input_ids_rejected"],
+            attention_mask=inputs["attention_mask_rejected"],
+            return_dict=True,
+        )["logits"]
+        loss = -nn.functional.logsigmoid(rewards_chosen - rewards_rejected).mean()
+
+        if return_outputs:
+            return loss, {
+                "rewards_chosen": rewards_chosen,
+                "rewards_rejected": rewards_rejected,
+            }
+        return loss
+
+
 class AxolotlMambaTrainer(AxolotlTrainer):
     """
     Mamba specific trainer to handle loss calculation
@@ -1197,6 +1224,8 @@ class HFCausalTrainerBuilder(TrainerBuilderBase):
             return ReLoRATrainer
         if self.cfg.model_config_type == "mamba":
             return AxolotlMambaTrainer
+        if self.cfg.reward_model:
+            return AxolotlRewardTrainer
         return AxolotlTrainer
 
     def build(self, total_num_steps):

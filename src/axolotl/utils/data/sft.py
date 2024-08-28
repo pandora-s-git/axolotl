@@ -438,7 +438,8 @@ def load_tokenized_prepared_datasets(
             else:
                 LOG.debug("NOT shuffling merged datasets")
 
-        dataset, _ = process_datasets_for_packing(cfg, dataset, None)
+        if cfg.sample_packing:
+            dataset, _ = process_datasets_for_packing(cfg, dataset, None)
 
         if cfg.local_rank == 0:
             LOG.info(f"Saving merged prepared dataset to disk... {prepared_ds_path}")
@@ -579,7 +580,11 @@ def get_dataset_wrapper(
             dataset,
             **ds_kwargs,
         )
-    elif ds_strategy := config_dataset.type.startswith("bradley_terry") and bradley_terry_load(config_dataset.type.split(".", 1)[1], tokenizer, cfg, config_dataset):
+    elif ds_strategy := config_dataset.type.startswith(
+        "bradley_terry"
+    ) and bradley_terry_load(
+        config_dataset.type.split(".", 1)[1], tokenizer, cfg, config_dataset
+    ):
         dataset_prompter = UnsupportedPrompter()
         dataset_wrapper = TokenizedPromptDataset(
             ds_strategy,
