@@ -18,6 +18,8 @@ from ..utils import with_temp_dir
 LOG = logging.getLogger("axolotl.tests.e2e.multigpu")
 os.environ["WANDB_DISABLED"] = "true"
 
+AXOLOTL_ROOT = Path(__file__).parent.parent.parent.parent
+
 
 class TestMultiGPULlama(unittest.TestCase):
     """
@@ -372,7 +374,7 @@ class TestMultiGPULlama(unittest.TestCase):
                 "optimizer": "adamw_torch",
                 "lr_scheduler": "cosine",
                 "flash_attention": True,
-                "deepspeed": "deepspeed_configs/zero3_bf16.yaml",
+                "deepspeed": AXOLOTL_ROOT / "deepspeed_configs/zero3_bf16.yaml",
             }
         )
 
@@ -431,7 +433,7 @@ class TestMultiGPULlama(unittest.TestCase):
                 "optimizer": "adamw_torch",
                 "lr_scheduler": "cosine",
                 "flash_attention": True,
-                "deepspeed": "deepspeed_configs/zero3_bf16.yaml",
+                "deepspeed": AXOLOTL_ROOT / "deepspeed_configs/zero3_bf16.yaml",
             }
         )
 
