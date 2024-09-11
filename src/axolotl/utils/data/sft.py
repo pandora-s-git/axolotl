@@ -26,7 +26,7 @@ from axolotl.prompt_tokenizers import (
     GPTeacherPromptTokenizingStrategy,
     JeopardyPromptTokenizingStrategy,
     OpenAssistantPromptTokenizingStrategy,
-    SummarizeTLDRPromptTokenizingStrategy,
+    SummarizeTLDRPromptTokenizingStrategy, PromptTokenizingStrategy, DatasetWrappingStrategy,
 )
 from axolotl.prompters import (
     AlpacaPrompter,
@@ -579,12 +579,15 @@ def get_dataset_wrapper(
             **ds_kwargs,
         )
     elif ds_strategy := load(config_dataset.type, tokenizer, cfg, config_dataset):
-        dataset_prompter = UnsupportedPrompter()
-        dataset_wrapper = TokenizedPromptDataset(
-            ds_strategy,
-            dataset,
-            **ds_kwargs,
-        )
+        if isinstance(ds_strategy, DatasetWrappingStrategy):
+            dataset_wrapper = ds_strategy.wrap_dataset(dataset, **ds_kwargs)
+        else:
+            dataset_prompter = UnsupportedPrompter()
+            dataset_wrapper = TokenizedPromptDataset(
+                ds_strategy,
+                dataset,
+                **ds_kwargs,
+            )
     elif d_base_type == "alpaca":
         dataset_prompter = AlpacaPrompter(d_prompt_style)
         ds_strategy = AlpacaPromptTokenizingStrategy(
