@@ -227,10 +227,10 @@ class ChatTemplateStrategy(PromptTokenizingStrategy):
             }
 
             return tokenized_prompt
-        LOG.info(self.roles_to_train)
-        LOG.info(self.train_on_eos)
-        LOG.info(self.prompter.message_field_training)
-        LOG.info(self.prompter.message_field_training_detail)
+        LOG.debug(self.roles_to_train)
+        LOG.debug(self.train_on_eos)
+        LOG.debug(self.prompter.message_field_training)
+        LOG.debug(self.prompter.message_field_training_detail)
 
         turns = prompt[self.messages]
         input_ids = self.prompter.build_prompt(turns)

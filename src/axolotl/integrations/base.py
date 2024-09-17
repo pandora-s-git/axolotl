@@ -364,7 +364,9 @@ class PluginManager:
         """
         callbacks = []
         for plugin in self.plugins:
-            callbacks.extend(plugin.add_callbacks_pre_trainer(cfg, model))
+            plugin_callbacks = plugin.add_callbacks_pre_trainer(cfg, model)
+            if plugin_callbacks:  # if the plugin returned a list of callbacks
+                callbacks.extend(plugin_callbacks)
         return callbacks
 
     def add_callbacks_post_trainer(self, cfg, trainer):
@@ -380,5 +382,7 @@ class PluginManager:
         """
         callbacks = []
         for plugin in self.plugins:
-            callbacks.extend(plugin.add_callbacks_post_trainer(cfg, trainer))
+            plugin_callbacks = plugin.add_callbacks_post_trainer(cfg, trainer)
+            if plugin_callbacks:
+                callbacks.extend(plugin_callbacks)
         return callbacks
