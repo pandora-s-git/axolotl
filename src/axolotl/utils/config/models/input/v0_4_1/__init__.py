@@ -125,6 +125,7 @@ class SFTDataset(BaseModel):
     drop_system_message: Optional[bool] = None
 
     trust_remote_code: Optional[bool] = False
+    revision: Optional[str] = None
 
 
 class UserDefinedDPOType(BaseModel):
@@ -146,6 +147,7 @@ class DPODataset(BaseModel):
     split: Optional[str] = None
     type: Optional[Union[UserDefinedDPOType, str]] = None
     data_files: Optional[List[str]] = None
+    revision: Optional[str] = None
 
 
 class UserDefinedKTOType(BaseModel):
@@ -167,6 +169,7 @@ class KTODataset(BaseModel):
     type: Optional[Union[UserDefinedKTOType, str]] = None
     data_files: Optional[List[str]] = None
     trust_remote_code: Optional[bool] = False
+    revision: Optional[str] = None
 
 
 class RLType(str, Enum):
@@ -444,6 +447,7 @@ class MLFlowConfig(BaseModel):
     use_mlflow: Optional[bool] = None
     mlflow_tracking_uri: Optional[str] = None
     mlflow_experiment_name: Optional[str] = None
+    mlflow_run_name: Optional[str] = None
     hf_mlflow_log_artifacts: Optional[bool] = None
 
 
@@ -489,6 +493,19 @@ class WandbConfig(BaseModel):
         return data
 
 
+class CometConfig(BaseModel):
+    """Comet configuration subset"""
+
+    use_comet: Optional[bool] = None
+    comet_api_key: Optional[str] = None
+    comet_workspace: Optional[str] = None
+    comet_project_name: Optional[str] = None
+    comet_experiment_key: Optional[str] = None
+    comet_mode: Optional[str] = None
+    comet_online: Optional[bool] = None
+    comet_experiment_config: Optional[Dict[str, Any]] = None
+
+
 class GradioConfig(BaseModel):
     """Gradio configuration subset"""
 
@@ -509,6 +526,7 @@ class AxolotlInputConfig(
     HyperparametersConfig,
     WandbConfig,
     MLFlowConfig,
+    CometConfig,
     LISAConfig,
     GradioConfig,
     RemappedParameters,
@@ -966,6 +984,26 @@ class AxolotlInputConfig(
                 "evaluation_strategy must be empty or set to `steps` when used with evals_per_epoch."
             )
 
+        if data.get("do_bench_eval") and not (
+            data.get("evals_per_epoch") or data.get("eval_steps")
+        ):
+            raise ValueError(
+                "do_bench_eval requires evals_per_epoch or eval_steps to be set."
+            )
+        return data
+
+    @model_validator(mode="before")
+    @classmethod
+    def check_test_datasets_bench(cls, data):
+        if (
+            data.get("do_bench_eval")
+            and not data.get("test_datasets")
+            and not data.get("val_set_size")
+        ):
+            LOG.warning(
+                "`do_bench_eval` needs a test dataset to run evals, adding an empty test_dataset."
+            )
+            data["test_datasets"] = [{"path": "axolotl-ai-co/empty-test-ds"}]
         return data
 
     @model_validator(mode="before")
